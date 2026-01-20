@@ -249,6 +249,7 @@ const App: React.FC = () => {
           transactions={state.transactions} 
           totalPool={totalPool} 
           poolGoal={state.poolGoal}
+          users={state.users}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">

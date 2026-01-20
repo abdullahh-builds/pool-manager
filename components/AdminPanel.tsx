@@ -17,6 +17,26 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ state, onAddTransaction, onUpda
   const [recipient, setRecipient] = useState('');
   const [subName, setSubName] = useState('');
 
+  // Calculate total transfers per user
+  const getUserTransferSummary = () => {
+    const summary: Record<string, { name: string, total: number, count: number }> = {};
+    
+    state.transactions
+      .filter(t => t.type === TransactionType.TRANSFER && t.recipientId)
+      .forEach(t => {
+        const user = state.users.find(u => u.id === t.recipientId);
+        if (user && t.recipientId) {
+          if (!summary[t.recipientId]) {
+            summary[t.recipientId] = { name: user.name, total: 0, count: 0 };
+          }
+          summary[t.recipientId].total += t.amount;
+          summary[t.recipientId].count += 1;
+        }
+      });
+    
+    return summary;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!amount || isNaN(parseFloat(amount))) return;
@@ -105,29 +125,46 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ state, onAddTransaction, onUpda
 
         {activeTab === 'users' && (
           <div className="space-y-4">
-            {state.users.filter(u => u.role !== 'ADMIN' && u.status === UserStatus.APPROVED).map(u => (
-              <div key={u.id} className="p-5 bg-slate-50 rounded-[2rem] border border-slate-100 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-white text-indigo-700 rounded-2xl flex items-center justify-center font-black text-xs shadow-sm border border-slate-100">
-                      {u.initials}
+            {state.users.filter(u => u.role !== 'ADMIN' && u.status === UserStatus.APPROVED).map(u => {
+              const transferSummary = getUserTransferSummary();
+              const userTransfers = transferSummary[u.id];
+              
+              return (
+                <div key={u.id} className="p-5 bg-slate-50 rounded-[2rem] border border-slate-100 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-white text-indigo-700 rounded-2xl flex items-center justify-center font-black text-xs shadow-sm border border-slate-100">
+                        {u.initials}
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-black text-slate-800">{u.name}</h4>
+                        <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest italic">{u.personalGoal || 'No goal set'}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="text-sm font-black text-slate-800">{u.name}</h4>
-                      <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest italic">{u.personalGoal || 'No goal set'}</p>
-                    </div>
+                    <select 
+                      value={u.visibility}
+                      onChange={(e) => onUpdateUserVisibility(u.id, e.target.value as VisibilitySetting)}
+                      className="bg-white text-[9px] font-black border border-slate-200 rounded-xl px-3 py-2 uppercase shadow-sm"
+                    >
+                      <option value={VisibilitySetting.FULL_HISTORY}>Full Hist</option>
+                      <option value={VisibilitySetting.TOTAL_ONLY}>Balance Only</option>
+                    </select>
                   </div>
-                  <select 
-                    value={u.visibility}
-                    onChange={(e) => onUpdateUserVisibility(u.id, e.target.value as VisibilitySetting)}
-                    className="bg-white text-[9px] font-black border border-slate-200 rounded-xl px-3 py-2 uppercase shadow-sm"
-                  >
-                    <option value={VisibilitySetting.FULL_HISTORY}>Full Hist</option>
-                    <option value={VisibilitySetting.TOTAL_ONLY}>Balance Only</option>
-                  </select>
+                  
+                  {userTransfers && (
+                    <div className="mt-3 pt-3 border-t border-slate-200">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total Transfers</span>
+                        <div className="text-right">
+                          <p className="text-sm font-black text-indigo-700 italic">Rs. {userTransfers.total.toLocaleString()}</p>
+                          <p className="text-[8px] font-black text-slate-400 uppercase">{userTransfers.count} transaction{userTransfers.count !== 1 ? 's' : ''}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

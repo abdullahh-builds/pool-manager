@@ -1,14 +1,15 @@
 
 import React from 'react';
-import { Transaction, TransactionType, User, VisibilitySetting } from '../types';
+import { Transaction, TransactionType, User, VisibilitySetting, UserRole } from '../types';
 
 interface TransactionListProps {
   transactions: Transaction[];
   users: User[];
   currentUser: User;
+  onDeleteTransaction?: (transactionId: string) => void;
 }
 
-const TransactionList: React.FC<TransactionListProps> = ({ transactions, users, currentUser }) => {
+const TransactionList: React.FC<TransactionListProps> = ({ transactions, users, currentUser, onDeleteTransaction }) => {
   // Don't render anything if user has TOTAL_ONLY visibility
   if (currentUser.visibility === VisibilitySetting.TOTAL_ONLY) {
     return null;
@@ -46,6 +47,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, users, 
               <th className="px-6 py-3">Member/Service</th>
               <th className="px-6 py-3">Date</th>
               <th className="px-6 py-3 text-right">Amount</th>
+              {currentUser.role === UserRole.ADMIN && <th className="px-6 py-3 text-right">Action</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -71,6 +73,23 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, users, 
                 <td className={`px-6 py-4 text-right font-semibold ${t.type === TransactionType.ADD ? 'text-emerald-600' : 'text-slate-800'}`}>
                   {t.type === TransactionType.ADD ? '+' : '-'}Rs. {t.amount.toLocaleString()}
                 </td>
+                {currentUser.role === UserRole.ADMIN && onDeleteTransaction && (
+                  <td className="px-6 py-4 text-right">
+                    <button
+                      onClick={() => {
+                        if (confirm('Delete this transaction?')) {
+                          onDeleteTransaction(t.id);
+                        }
+                      }}
+                      className="p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                      title="Delete transaction"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

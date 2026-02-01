@@ -136,6 +136,16 @@ const App: React.FC = () => {
     }
   };
 
+  const handleDeleteTransaction = async (transactionId: string) => {
+    try {
+      const newTransactions = state.transactions.filter(t => t.id !== transactionId);
+      await updatePoolData({ transactions: newTransactions });
+    } catch (err: any) {
+      console.error("Delete failed:", err.message);
+      setError(`Delete failed: ${err.message}`);
+    }
+  };
+
   const handleUpdateUserVisibility = async (userId: string, visibility: VisibilitySetting) => {
     try {
       const newUsers = state.users.map(u => u.id === userId ? { ...u, visibility } : u);
@@ -270,6 +280,7 @@ const App: React.FC = () => {
               transactions={state.transactions} 
               users={state.users}
               currentUser={currentUser}
+              onDeleteTransaction={handleDeleteTransaction}
             />
           </div>
           

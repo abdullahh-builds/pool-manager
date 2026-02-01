@@ -5,7 +5,8 @@ import { INITIAL_USERS, INITIAL_TRANSACTIONS } from './constants';
 import Dashboard from './components/Dashboard';
 import TransactionList from './components/TransactionList';
 import AdminPanel from './components/AdminPanel';
-import { streamPoolData, updatePoolData } from './services/firebase';
+import { streamPoolData, updatePoolData } from './services/supabase';
+import { downloadBackup } from './services/backup';
 
 const App: React.FC = () => {
   const [state, setState] = useState<AppState>({
@@ -229,7 +230,17 @@ const App: React.FC = () => {
             <h1 className="text-5xl font-black italic tracking-tighter text-indigo-700">PoolPal</h1>
             <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.4em] mt-1">Collective Wealth Management</p>
           </div>
-          <div className="flex items-center gap-4 bg-white p-3 pr-6 rounded-full border border-slate-200 shadow-sm">
+          <div className="flex items-center gap-4">
+            {currentUser.role === UserRole.ADMIN && (
+              <button 
+                onClick={() => downloadBackup()} 
+                className="px-4 py-2 bg-emerald-600 text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-emerald-700 transition-colors"
+                title="Download backup"
+              >
+                💾 Backup
+              </button>
+            )}
+            <div className="flex items-center gap-4 bg-white p-3 pr-6 rounded-full border border-slate-200 shadow-sm">
             <div className="w-10 h-10 bg-indigo-700 text-white rounded-full flex items-center justify-center font-black text-xs uppercase italic">{currentUser.initials}</div>
             <div>
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Active Member</p>
@@ -242,6 +253,7 @@ const App: React.FC = () => {
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-6 0v-1m6-10V7a3 3 0 00-6 0v1" /></svg>
             </button>
           </div>
+        </div>
         </header>
 
         <Dashboard 

@@ -68,3 +68,13 @@ export const updatePoolData = async (data: any) => {
     throw sanitizeError(e);
   }
 };
+
+export const resetPoolData = async (data: any) => {
+  try {
+    const poolRef = doc(db, "pools", POOL_DOC_ID);
+    await setDoc(poolRef, toPlainObject(data), { merge: false }); // Overwrite completely
+  } catch (e: any) {
+    console.error("Firebase Reset Error:", e.code, e.message);
+    throw sanitizeError(e);
+  }
+};
